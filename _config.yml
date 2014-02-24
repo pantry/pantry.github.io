@@ -1,0 +1,14 @@
+##
+# Jekyll config
+##
+port:         8080
+pygments:     false
+pagination:   10
+permalink:    /:year/:month/:day/:title/
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - Rakefile
+  - tmp
+include:
+  - assets
