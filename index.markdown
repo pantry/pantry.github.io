@@ -27,7 +27,7 @@ Non-technically, Pantry gives you a structure for setting up your DevOps pipelin
 
 ## Is it Secure?
 
-As server provisioning often includes sensitive information such as passwords and account tokens, security is of the utmost concern in Pantry. To protect Client and Server communication, Pantry employs [ZeroMQ's](http://zeromq.org/) [Curve encryption](http://curvezmq.org/) protocol. For more information please visit [Security](/security.html).
+As server provisioning often includes sensitive information such as passwords and account tokens, security is of the utmost concern in Pantry. To protect Client and Server communication, Pantry employs [ZeroMQ's](http://zeromq.org/) [Curve encryption](http://curvezmq.org/) protocol. For more information please visit [Security](/core/security.html).
 
 
 ## How Do I Use It?
