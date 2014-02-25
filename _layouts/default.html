@@ -1,54 +1,15 @@
-<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>{{ page.title | strip_html }}</title>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
 
-    <link rel="stylesheet" href="/assets/stylesheets/styles.css">
-    <link rel="stylesheet" href="/assets/stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+  {% include head.html %}
 
-  </head>
-  <body>
-    <div class="wrapper">
-      <header>
-        <h1 class="header">{{ page.title }}</h1>
-        <p class="header">
-          {{ page.summary }}
-        </p>
-        <ul>
-          <li><a class="buttons github" href="https://github.com/pantry/{{ page.github }}">View On GitHub</a></li>
-        </ul>
-      </header>
+  <body class="layout-reverse theme-base-08">
 
-      <section>
-        {{ content }}
-      </section>
+    {% include sidebar.html %}
 
-      <footer>
-        <p>
-          <small>&copy; 2014 <a href="http://collectiveidea.com">Collective Idea</a></small>
-          <small>Using the <a href="https://github.com/broccolini/dinky">Dinky theme</a></small>
-        </p>
-      </footer>
+    <div class="content container">
+      {{ content }}
     </div>
 
-    <script type="text/javascript">
-      var _gauges = _gauges || [];
-      (function() {
-        var t   = document.createElement('script');
-        t.type  = 'text/javascript';
-        t.async = true;
-        t.id    = 'gauges-tracker';
-        t.setAttribute('data-site-id', '530b72155dd0535b0e000c9b');
-        t.src = '//secure.gaug.es/track.js';
-        var s = document.getElementsByTagName('script')[0];
-        s.parentNode.insertBefore(t, s);
-      })();
-    </script>
   </body>
 </html>

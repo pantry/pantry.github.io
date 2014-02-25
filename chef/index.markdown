@@ -1,7 +1,7 @@
 ---
-layout: default
-title: <a href="/">Pantry</a> <a href="/chef">Chef</a>
-github: pantry-chef
+layout: page
+title: Pantry Chef
+github: pantry/pantry-chef
 summary: A Smaller, Simpler Chef Server
 ---
 

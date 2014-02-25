@@ -1,7 +1,7 @@
 ---
-layout: default
-title: <a href="/">Pantry</a> <a href="/core">Core</a>
-github: pantry
+layout: page
+title: Pantry Core
+github: pantry/pantry
 summary: Async Client/Server Remote Execution Framework
 ---
 

@@ -1,6 +1,7 @@
 ---
-layout: default
+layout: page
 title: Pantry
+github: pantry
 summary: Modern DevOps Automation
 ---
 
