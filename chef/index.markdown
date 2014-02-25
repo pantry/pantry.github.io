@@ -2,7 +2,7 @@
 layout: page
 title: Pantry Chef
 github: pantry/pantry-chef
-nav_order: 1
+nav_order: 2
 summary: A Smaller, Simpler Chef Server
 ---
 
