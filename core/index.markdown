@@ -2,6 +2,7 @@
 layout: page
 title: Pantry Core
 github: pantry/pantry
+nav_order: 2
 summary: Async Client/Server Remote Execution Framework
 ---
 

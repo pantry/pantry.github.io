@@ -6,21 +6,11 @@
     </div>
 
     <ul class="sidebar-nav">
-      {% comment %}
-        The code below dynamically generates a sidebar nav of pages with
-        `layout: page` in the front-matter. See readme for usage.
-      {% endcomment %}
-
-      {% assign pages_list = site.pages %}
-      {% for node in pages_list %}
-        {% if node.title != null %}
-          {% if node.layout == "page" %}
-            <li class="sidebar-nav-item{% if page.url == node.url %} active{% endif %}">
-              <a href="{{ node.url }}">{{ node.title }}</a>
-            </li>
-          {% endif %}
-        {% endif %}
-      {% endfor %}
+      {% for nav_entry in (0..site.pages.size) %} {% for node in site.pages %} {% if node.nav_order == nav_entry %}
+        <li class="sidebar-nav-item{% if page.url == node.url %} active{% endif %}">
+          <a href="{{ node.url }}">{{ node.title }}</a>
+        </li>
+      {% endif %} {% endfor %} {% endfor %}
 
       <li>&nbsp;</li>
       <li class="sidebar-nav-item"><a href="https://github.com/{{ page.github }}">Github &mdash; {{page.github}}</a></li>

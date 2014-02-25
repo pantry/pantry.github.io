@@ -2,6 +2,7 @@
 layout: page
 title: Pantry
 github: pantry
+nav_order: 0
 summary: Modern DevOps Automation
 ---
 
