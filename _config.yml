@@ -2,7 +2,7 @@
 # Jekyll config
 ##
 port:         8080
-pygments:     false
+pygments:     true
 pagination:   10
 permalink:    /:year/:month/:day/:title/
 exclude:
