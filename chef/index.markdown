@@ -8,23 +8,38 @@ summary: A Smaller, Simpler Chef Server
 
 # Pantry Chef
 
-Pantry Chef hosts and serves up Chef data much like a Chef Server. It handles all the major components of Chef: cookbooks, environments, roles, and data bags while Clients download all required Chef data locally and run [chef-solo](http://docs.opscode.com/chef_solo.html).
+Pantry Chef hosts and serves up Chef data much like a Chef Server. It handles all the major components of Chef: cookbooks, environments, roles, and data bags. Clients then download all required Chef data locally and run [chef-solo](http://docs.opscode.com/chef_solo.html).
 
 Like Chef Server, Pantry Chef keeps track of roles, environments, and data bags in a per-application setup. Unlike Chef Server though, Pantry Chef keeps all cookbooks globally, allowing easy sharing for any application needing said cookbooks. One updated cookbook can be immediately applied to all Applications without any extra hassle!
 
 ## Getting Started
 
-Install the Ruby gem on the Server, Clients and locally:
+Install the Ruby gem on the Server, Clients, and locally:
 
     gem install pantry-chef
 
 Restart the Server and Clients. The new commands will show up in the [Pantry CLI](/cli.html)'s `--help` output.
 
+## Usage
+
+Once installed, using Pantry Chef is simple. You'll need to upload each of your cookbooks to the server.
+
+    pantry chef:cookbook:upload COOKBOOK_DIR
+
+For application specific files (environments, roles, and data bags) you need to specify an application for uploading
+
+    pantry -a [application] chef:environment:upload ENVIRONMENT_FILE
+    ...
+
+Once all files are uploaded, trigger a Chef run on all clients:
+
+    pantry chef:run
+
 ## Internal Details
 
 ### Cookbooks
 
-All uploaded cookbooks are stored in `Pantry.root/chef/cookbooks`. Directories are validated to be "cookbooks" if they contain a `metadata.rb` file. Pantry Chef does not care about nor check cookbook versions. Pantry Chef also doesn't currently calculate cookbook dependencies, instead sending all uploaded cookbooks when requested. This will be improved upon in the future.
+All uploaded cookbooks are stored in `Pantry.root/chef/cookbooks`. Directories are validated to be cookbooks if they contain a `metadata.rb` file. Pantry Chef does not care about nor check cookbook versions. Pantry Chef also doesn't currently calculate cookbook dependencies, instead sending all uploaded cookbooks to Clients when requested. This will be improved upon in the future.
 
 ### Environments, Roles, Data Bags
 
