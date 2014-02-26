@@ -8,16 +8,16 @@ summary: Async Client/Server Remote Execution Framework
 
 # Extending Pantry
 
-Adding functionality to Pantry via plugins starts with Commands. Commands can be configured to run on the Server or on Clients, but not both. Commands have full access to almost the entire Pantry system and as such are very powerful tools, yet built on some simple building blocks, to ensure simple Commands are easy to write, and complicated ones are possible.
+Adding functionality to Pantry via plugins starts with Commands. Commands can be configured to run on the Server or on Clients, but not both. Commands have full access to almost the entire Pantry system and as such are very powerful tools, yet built on simple building blocks. This ensures simple Commands are easy to write, and complicated ones are possible.
 
 ## Writing a Command
 
 All Commands must adhere to the following rules:
 
 * A Command must be a `Pantry::Command`
-* A Command must implement `#perform`
-* A Command may implement `#prepare_message`
-* A Command may implement `#receive_response`
+* A Command must implement `#perform(message)`
+* A Command may implement `#prepare_message(options)`
+* A Command may implement `#receive_response(response)`
 * A Command may define a `command` block for [CLI](/cli.html) support
 * The Command must be registered with Pantry as a Client or Server command
 
@@ -37,11 +37,11 @@ class MyCommand < Pantry::Command
 end
 {% endhighlight %}
 
-With that out of the way, lets build a simple command that echo's the message requested by the CLI.
+With that, lets build a simple Command that echo's the message requested by the CLI.
 
 ### Simple Server Command
 
-We'll start out with the most basic Command possible and register it as a Server command:
+We'll start out with a quick skeleton and register the Command with Pantry as a Server Command.
 
 {% highlight ruby %}
 class TheSimplestEcho < Pantry::Command
@@ -61,7 +61,7 @@ Even though this Command is registered as a Server Command, it's for the most pa
 
 ### Configure the CLI
 
-Commands are exposed to the CLI via the `command` configuration, which takes the name of the command. This name will is what users will call via the CLI to invoke this Command. This method takes a block which is sent down to Ruby's [OptionParser](http://ruby-doc.org/stdlib-2.1.0/libdoc/optparse/rdoc/OptionParser.html), so all options available there are valid in this block. We'll see an example of this later. For now, lets just configure the command itself with a parameter.
+Commands are exposed to the CLI via the `command` configuration, which takes the name of the command. This name is what users type in to invoke this Command. This method takes a block which is sent down to Ruby's [OptionParser](http://ruby-doc.org/stdlib-2.1.0/libdoc/optparse/rdoc/OptionParser.html), so all options available there are valid in this block. We'll see an example of this later. For now, lets just configure the command itself with a parameter.
 
 {% highlight ruby %}
 class TheSimplestEcho < Pantry::Command
@@ -218,7 +218,92 @@ A good example of this in action is [Pantry::Chef::Run](https://github.com/pantr
 
 ### Using Commands in Commands
 
+It is possible that a Command may need further information from the Server or Clients before it can continue it's job. For such situations, Commands have the `#send_request` and `#send_request!` methods. They do the same thing but `#send_request` returns a `Celluloid::Future` that needs to be queried for the response, while `#send_request!` will block until a response is ready and will return the response Message.
+
+These methods take a Message, which should be created from the Command that needs to run on the receiving side. For example, say there was a Client Command who need to know how many Clients were connected and available.
+
+{% highlight ruby %}
+class CountClients < Pantry::Command
+  def perform(message)
+    4
+  end
+end
+
+class ClientCommand < Pantry::Command
+  def perform(message)
+    server_response = send_request!(CountClients.new.to_message)
+    client_count = server_response.body[0].to_i
+    # ...
+  end
+end
+
+Pantry.add_server_command(CountClients)
+Pantry.add_client_command(ClientCommand) 
+{% endhighlight %}
+
 ### Sending and Receiving Files
 
-### Caveats and Requirements (e.g. Pantry.root)
+There are two ways in Pantry to pass files between the Server and its Clients/CLI. The first is simple, `File.read` and put the contents of the file in the Message, and `File.write` on the receiving side. This is the recommended way for any small or plain text file. In fact this is so common that Pantry provides an abstract Command encapsulating this logic: `Pantry::Commands::UploadFile`. Subclasses then only need to specify where the file will be written out on the receiving end (e.g. [Pantry::Chef::UploadRole](https://github.com/pantry/pantry-chef/blob/master/lib/pantry/chef/upload_role.rb)).
 
+Larger files however should use Pantry's file service. This service implements reliable, chunk-based file transfer following the [ZeroMQ Transferring Files](http://zguide.zeromq.org/page:all#Transferring-Files) guide and requires a few steps to use correctly. This service is exposed via two methods: `server_or_client#send_file` and `server_or_client#receive_file`, but first a primer on how Pantry's file service works.
+
+The most important aspect of the file service is that the **Receiving end initiates the transfer**. Because both sides can send and receive files, and to support sending many files in parallel, the sender and receiver are linked together via two UUIDs: the receiver's UUID and the specific file transfer UUID. The Receiving end does not initially care about the name or location of the file in question, it just needs the file's size and a checksum to ensure the upload was successful and correct. The Receiver is started with `server_or_client#receive_file(file_size, checksum)` which returns an `UploadInfo` object containing `#receiver_uuid` and `#file_uuid` to send back to the Sender.
+
+As the File Service really doesn't care where files go, it writes uploads to a temp file. To put that file into it's appropriate home once successfully uploaded, `UploadInfo` can be given an `#on_complete` block which will fire when the file has been fully received. `UploadInfo` then offers up the `#uploaded_path` method which will turn the path to the received file.
+
+Back on the Sender's side, having received `receiver_uuid` and `file_uuid` from the Receiver, the Sender can now fire off their side of the process with `server_or_client#send_file(file, receiver_uuid, file_uuid)`. This method also returns an `UploadInfo` for one important use-case: waiting until the upload is finished. Because the File Service is a fully asynchronous process, `#send_file` immediately returns. If the Command was allowed to end at that point, the file may not get uploaded at all. To force a blocking wait on the current process until the file sending is complete, call `UploadInfo#wait_for_finish`.
+
+Here's an example of a Command that uploads a file to the Server from the CLI.
+
+{% highlight ruby %}
+class UploadBigFile < Pantry::Command
+  command "upload:big:file FILE"
+  
+  def initialize(file = nil)
+    @file = file
+  end
+  
+  def to_message
+    super.tap do |message|
+      message << File.basename(@file)
+      message << File.size(@file)
+      message << Digest::SHA256.file(@file).hexdigest
+    end
+  end
+  
+  def perform(message)
+    file_name = message[0]
+    file_size = message[1]
+    file_checksum = message[2]
+    
+    upload_info = server.receive_file(file_size, file_checksum)
+    upload_info.on_complete do
+      FileUtils.mv(
+        upload_info.uploaded_path,
+        Pantry.root.join(file_name)
+      )
+    end
+    
+    [upload_info.receiver_uuid, upload_info.file_uuid]
+  end
+  
+  def receive_response(response)
+    receiver_uuid = response.body[0]
+    file_uuid = response.body[1]
+    
+    upload_info = client.send_file(@file, receiver_uuid, file_uuid)
+    upload_info.wait_for_finish
+    super
+  end
+end
+{% endhighlight %}
+
+You'll notice a new invocation here, `Pantry.root`. We'll touch on that in just a sec. Also always remember that during the CLI invocation of a Command, `#initialize`, `#to_message`, `#prepare_message`, and `#receive_response` are all called on the same object on the CLI/Client side. `#perform` is executed on the Server side, so any data that `#perform` needs to know about must be sent through the Message built in `#to_message` or `#prepare_message`.
+
+### Integrating Your Plugin
+
+Last, but not least, any new Commands need to be loaded into Pantry proper. This is done via Rubygems. Package up your Plugin as a gem, and make sure it includes the file `pantry/init.rb` in its load path. Pantry, on boot, will look for all gems that include this file and will `require` each of them. If there's a problem loading a specific plugin, the error will be logged. For now the plugin gems need to be installed on every node (Server and Clients) that need it. There are plans on improving this flow.
+
+### The File System
+
+Pantry does not currently use a database of any sort; all persistent data is written out to the file system. Where Pantry writes these files is dictated by the [configuration](/core/configure.html) and is available in the code via `Pantry.root`. In order to stay self contained and good citizens of servers, no files should be written outside of the `Pantry.root` (except in the case of temp files). Furthermore, plugins should carve out their own location for their files to prevent accidental file clobbering. For example, [Pantry Chef](/chef) writes all global Chef data under `Pantry.root.join("chef")` and all Application specific data under `Pantry.root.join("application", app_name, "chef")`.
