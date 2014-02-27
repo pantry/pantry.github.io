@@ -260,15 +260,15 @@ Here's an example of a Command that uploads a file to the Server from the CLI.
 class UploadBigFile < Pantry::Command
   command "upload:big:file FILE"
   
-  def initialize(file = nil)
-    @file = file
+  def initialize(file_path = nil)
+    @file_path = file_path
   end
   
   def to_message
     super.tap do |message|
-      message << File.basename(@file)
-      message << File.size(@file)
-      message << Digest::SHA256.file(@file).hexdigest
+      message << File.basename(@file_path)
+      message << File.size(@file_path)
+      message << Pantry.file_checksum(@file_path)
     end
   end
   
@@ -292,7 +292,7 @@ class UploadBigFile < Pantry::Command
     receiver_uuid = response.body[0]
     file_uuid = response.body[1]
     
-    upload_info = client.send_file(@file, receiver_uuid, file_uuid)
+    upload_info = client.send_file(@file_path, receiver_uuid, file_uuid)
     upload_info.wait_for_finish
     super
   end
