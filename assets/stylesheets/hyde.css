@@ -95,8 +95,12 @@ a.sidebar-nav-item:hover,
 a.sidebar-nav-item:focus {
   text-decoration: underline;
 }
-.sidebar-nav-item.active {
+.sidebar-nav-item .active {
   font-weight: bold;
+}
+
+.subnav {
+  margin-left: 1rem;
 }
 
 /* Sticky sidebar
@@ -141,6 +145,9 @@ a.sidebar-nav-item:focus {
   }
 }
 
+footer {
+  border-top: 1px solid #ac4142;
+}
 
 /*
  * Reverse layout

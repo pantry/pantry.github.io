@@ -7,8 +7,11 @@
 
     <ul class="sidebar-nav">
       {% for nav_entry in (0..site.pages.size) %} {% for node in site.pages %} {% if node.nav_order == nav_entry %}
-        <li class="sidebar-nav-item{% if page.url == node.url %} active{% endif %}">
-          <a href="{{ node.url }}">{{ node.title }}</a>
+        <li class="sidebar-nav-item">
+          <a href="{{ node.url }}" class="{% if page.url == node.url %} active{% endif %}">{{ node.title }}</a>
+          {% for subnode in site.pages sort:name %}{% if subnode.sub_nav == node.nav_order %}
+              <div class="subnav {% if page.url == subnode.url %} active{% endif %}"><a href="{{ subnode.url }}">{{ subnode.subtitle }}</a></div>
+          {% endif %} {% endfor %}
         </li>
       {% endif %} {% endfor %} {% endfor %}
 
@@ -16,12 +19,5 @@
       <li class="sidebar-nav-item"><a href="https://github.com/{{ page.github }}">Github &mdash; {{page.github}}</a></li>
     </ul>
 
-    <p>
-      &copy; {{ site.time | date: '%Y' }}. <a href="http://collectiveidea.com">Collective Idea</a><br/>
-      All rights reserved.
-    </p>
-    <p>
-      Using the <a href="http://hyde.getpoole.com/">Hyde Theme</a>.
-    </p>
   </div>
 </div>
