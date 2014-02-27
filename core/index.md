@@ -24,7 +24,7 @@ Like the Pantry Server, Pantry Clients also store all of their information under
 
 ## Pantry CLI
 
-Most users will interact with a Pantry network via the CLI. You can read more about this at [Using the Pantry CLI](/cli.html).
+Most users will interact with a Pantry network via the CLI. You can read more about this at [Using the Pantry CLI](/core/cli.html).
 
 ## Aspects of Pantry
 
@@ -48,7 +48,7 @@ The body of a Message is an array. Each element of the array is sent down the ne
 
 ### Command
 
-The Command is the workhorse of Pantry. All logic to be executed on the Client or Server must be implemented in a Command. Commands, as said above, are triggered via Messages over the network, and can be triggered by the Server, a Client, or the [CLI](/cli.html).
+The Command is the workhorse of Pantry. All logic to be executed on the Client or Server must be implemented in a Command. Commands, as said above, are triggered via Messages over the network, and can be triggered by the Server, a Client, or the [CLI](/core/cli.html).
 
 Commands are also the extension point where all Pantry plugins begin, so to further understand these objects it's best to read [Extending Pantry](/core/extending.html).
 

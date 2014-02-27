@@ -18,7 +18,7 @@ Install the Ruby gem on the Server, Clients, and locally:
 
     gem install pantry-chef
 
-Restart the Server and Clients. The new commands will show up in the [Pantry CLI](/cli.html)'s `--help` output.
+Restart the Server and Clients. The new commands will show up in the [Pantry CLI](/core/cli.html)'s `--help` output.
 
 ## Usage
 

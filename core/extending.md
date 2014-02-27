@@ -9,7 +9,7 @@ sub_nav: 1
 
 # Extending Pantry
 
-Adding functionality to Pantry via plugins starts with Commands. Commands can be configured to run on the Server or on Clients, but not both. Commands have full access to almost the entire Pantry system and as such are very powerful tools, yet built on simple building blocks. This ensures simple Commands are easy to write, and complicated ones are possible.
+Adding functionality to Pantry via plugins starts with Commands. Commands can be configured to run on the Server or on Clients, but not both. Commands have full access to almost the entire Pantry system and as such are powerful tools, yet built on simple building blocks. This ensures simple Commands are easy to write, and complicated ones are possible.
 
 ## Writing a Command
 
@@ -19,7 +19,7 @@ All Commands must adhere to the following rules:
 * A Command must implement `#perform(message)`
 * A Command may implement `#prepare_message(options)`
 * A Command may implement `#receive_response(response)`
-* A Command may define a `command` block for [CLI](/cli.html) support
+* A Command may define a `command` block for [CLI](/core/cli.html) support
 * The Command must be registered with Pantry as a Client or Server command
 
 The details and use of each of these API endpoints will be explained below.
