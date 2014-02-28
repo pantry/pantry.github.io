@@ -22,7 +22,7 @@ All Commands must adhere to the following rules:
 * A Command may define a `command` block for [CLI](/core/cli.html) support
 * The Command must be registered with Pantry as a Client or Server command
 
-The details and use of each of these API endpoints will be explained below.
+The details and use of each of these API endpoints are explained below.
 
 A well written Command is a self-contained entity. This means that reading the code of a Command from top-to-bottom should also follow the execution flow of a Command through a Pantry network. Specifically, the Command's various sections should appear in the following order:
 
@@ -62,7 +62,7 @@ Even though this Command is registered as a Server Command, it is for the most p
 
 ### Configure the CLI
 
-Commands are exposed to the CLI via the `command` method, which takes the name of the command and an optional block. This name is what users type to invoke the Command. 
+Commands are exposed to the CLI via the `command` method, which takes the name of the command and an optional block. This name is what users type to invoke the Command.
 
 {% highlight ruby %}
 class TheSimplestEcho < Pantry::Command
@@ -105,7 +105,7 @@ Lets improve our Echo command by adding an option to multiply the message when e
     EchoEchoEchoEchoEcho
     $>
 
-We will update the `command` definition to include the "-t" option, and while we're at it add a description to the "echo" command itself. These options are specified in the optional block to the `command` method. This block is executed in a light wrapper round Ruby's [OptionParser](http://ruby-doc.org/stdlib-2.1.0/libdoc/optparse/rdoc/OptionParser.html) library, so all options available there are valid here. The parsed options are then passed into `#prepare_message` as a Hash, using the longest given `#option` name as keys.
+We will update the `command` definition to include the "-t" option, and while we're at it add a description to the "echo" command itself. These options are specified in the optional block to the `command` method. This block is executed in a light wrapper round Ruby's [OptionParser](http://ruby-doc.org/stdlib-2.1.0/libdoc/optparse/rdoc/OptionParser.html) library, so all options available there are valid here. The parsed options are then passed into `#prepare_message` as a Hash, using the longest given `#option` names as keys.
 
 {% highlight ruby %}
 class TheSimplestEcho < Pantry::Command
@@ -150,9 +150,9 @@ end
 
 There's a bit of new code here so we'll go over the changes from the top.
 
-A `command` block can be given a `description` string. Description strings are processed to remove excessive whitespace, so feel free to write multi-line, clean blocks of text. The first line will be the Command's summary and the rest will only show up on the Command's own help text (e.g. `pantry echo --help`). Following this, all commands are given a default set of `-h`/`--help`.
+A `command` block can be given a `description` string. Description strings are processed to remove excessive whitespace, so feel free to write multi-line, clean blocks of text. The first line will be the Command's summary and the rest will only show up on the Command's own help text (e.g. `pantry echo --help`). Pantry gives all commands their own `-h`/`--help` options.
 
-Next, `#to_message` has been replaced with `#prepare_message`. This method takes the options parsed from the command line (including any global options, such as `--application`, `--environment`, and `--roles`).  Use this method to verify options and to run any pre-flight steps before the Message is sent. By default `#prepare_message` just calls `#to_message`. This method must return the Message that will be sent over the network or raise an error. Raised errors are caught and displayed cleanly to the user along with the Command's `--help`.
+Next, `#to_message` has been replaced with `#prepare_message`. This method takes the options parsed from the command line (including any global options, such as `--application`, `--environment`, and `--roles`).  Use this method to verify options and to run any pre-flight steps before the Message is sent. By default `#prepare_message` just calls `#to_message`. This method must return the Message to send over the network, or raise an error. Raised errors are caught and displayed cleanly to the user along with the Command's `--help`.
 
 One `command` option not shown here is the `#group` method. This method lets plugin authors group together their plugins in a common block in the CLI's top-level `--help`.
 
@@ -220,7 +220,7 @@ A good example of this in action is [Pantry::Chef::Run](https://github.com/pantr
 
 It is possible that a Command may need further information from the Server or Clients before it can finish. To make extra requests inside of a Command, use the `#send_request` and `#send_request!` methods. They do the same thing, send a Message, but `#send_request` returns a `Celluloid::Future` that needs to be queried for the response, while `#send_request!` will block until a response is ready and will return the response Message.
 
-These methods take a Message, which should be created from the Command to be run on the receiving side. For example, say there was a Client Command who need to know how many Clients were connected and available. We might write the following:
+These methods take a Message, which should be created from the Command to be run on the receiving side. For example, say there was a Client Command who needs to know how many Clients are connected and available. We can write the following:
 
 {% highlight ruby %}
 class CountClients < Pantry::Command
@@ -238,14 +238,14 @@ class ClientCommand < Pantry::Command
 end
 
 Pantry.add_server_command(CountClients)
-Pantry.add_client_command(ClientCommand) 
+Pantry.add_client_command(ClientCommand)
 {% endhighlight %}
 
 Remember, Clients never talk directly to each other. All communication goes through the Server. In most cases, `#send_request` will be a Client command asking the Server for information.
 
 ### Sending and Receiving Files
 
-There are two ways in Pantry to pass files between the Server and its Clients/CLI. The first is simple, `File.read` the contents of the file into a Message, and `File.write` it out on the receiving side. This is recommended for any small or plain text file. In fact this is so common that Pantry provides an abstract Command encapsulating this logic: `Pantry::Commands::UploadFile`. Subclasses only need to specify where the file will be written out on the receiving end (e.g. [Pantry::Chef::UploadRole](https://github.com/pantry/pantry-chef/blob/master/lib/pantry/chef/upload_role.rb)).
+There are two ways in Pantry to pass files between the Server and its Clients/CLI. The first is simple, `File.read` the contents of the file into a Message, and `File.write` it out on the receiving side. This is recommended for any small file (binary included) or plain text file. In fact this is so common that Pantry provides an abstract Command encapsulating this logic: `Pantry::Commands::UploadFile`. Subclasses only need to specify where the file will be written out on the receiving end (e.g. [Pantry::Chef::UploadRole](https://github.com/pantry/pantry-chef/blob/master/lib/pantry/chef/upload_role.rb)).
 
 Larger files should use Pantry's file service. This service implements a reliable, chunk-based file transfer following the [ZeroMQ Transferring Files](http://zguide.zeromq.org/page:all#Transferring-Files) guide and requires a few steps to use correctly. This service is exposed via two methods: `server_or_client#send_file` and `server_or_client#receive_file`, but first a primer on how Pantry's file service works.
 
@@ -260,11 +260,11 @@ Here's an example of a Command that uploads a file to the Server from the CLI.
 {% highlight ruby %}
 class UploadBigFile < Pantry::Command
   command "upload:big:file FILE"
-  
+
   def initialize(file_path = nil)
     @file_path = file_path
   end
-  
+
   def to_message
     super.tap do |message|
       message << File.basename(@file_path)
@@ -272,12 +272,12 @@ class UploadBigFile < Pantry::Command
       message << Pantry.file_checksum(@file_path)
     end
   end
-  
+
   def perform(message)
     file_name = message[0]
     file_size = message[1]
     file_checksum = message[2]
-    
+
     upload_info = server.receive_file(file_size, file_checksum)
     upload_info.on_complete do
       FileUtils.mv(
@@ -285,30 +285,32 @@ class UploadBigFile < Pantry::Command
         Pantry.root.join(file_name)
       )
     end
-    
+
     [upload_info.receiver_uuid, upload_info.file_uuid]
   end
-  
+
   def receive_response(response)
     receiver_uuid = response.body[0]
     file_uuid = response.body[1]
-    
-    upload_info = client.send_file(@file_path, receiver_uuid, file_uuid)
+
+    upload_info = client.send_file(
+      @file_path, receiver_uuid, file_uuid
+    )
     upload_info.wait_for_finish
     super
   end
 end
 {% endhighlight %}
 
-You'll notice a new invocation here, `Pantry.root`. We'll touch on that in just a sec. Also always remember that during the CLI invocation of a Command, `#initialize`, `#to_message`, `#prepare_message`, and `#receive_response` are all called on the same object on the CLI/Client side. `#perform` is executed on the Server side, so any data that `#perform` needs to know about must be included in the Message.
+You'll notice a new invocation here, `Pantry.root`. We'll touch on that in just a sec. Also always remember that during the CLI invocation of a Command, `#initialize`, `#to_message`, `#prepare_message`, and `#receive_response` are all called on the same object on the CLI/Client side, and `#perform` is executed on the Server side. Any data that `#perform` needs to know must be included in the Message.
 
 ### Pantry.root and the File System
 
-Pantry does not currently use a database of any sort; all persistent data is written out to the file system. Where Pantry writes these files is dictated by the [configuration](/core/configure.html) and is available in the code via `Pantry.root`. In order to stay self contained and good citizens of servers, no files should be written outside of the `Pantry.root`. Furthermore, plugins should carve out their own location for their files to prevent accidental file clobbering. For example, [Pantry Chef](/chef) writes all global Chef data under `Pantry.root.join("chef")` and all Application specific data under `Pantry.root.join("application", app_name, "chef")`.
+Pantry does not use a database. All persistent data is written out to the file system. Where Pantry writes these files is dictated by the [configuration](/core/configure.html) and is available in the code via `Pantry.root`. In order to stay self-contained and a good citizen of servers, no files should be written outside of the `Pantry.root`. Furthermore, plugins should carve out their own location for their files to prevent accidental file clobbering. For example, [Pantry Chef](/chef) writes all global Chef data under `Pantry.root/chef` and all Application specific data under `Pantry.root/application/[app_name]/chef`.
 
 ### Integrating Your Plugin
 
-Last, but not least, any new Commands need to be loaded into Pantry proper. This is done via Rubygems. Package up your plugin as a gem and make sure it includes a file named `pantry/init.rb`. Pantry, on boot, will look for all gems that include this file and will `require` each of them. If there's a problem loading a specific plugin, the error will be logged. For now the plugin gems need to be installed on every node (Server and Clients) that need it. There are plans on improving this flow.
+Last, but not least, any new Commands need to be loaded with Pantry Core. This is done via Rubygems. Package up your plugin as a gem and make sure it includes a file named `pantry/init.rb`. Pantry, on boot, will look for all gems that include this file and will `require` each of them. If there's a problem loading a specific plugin, the error will be logged. For now the plugin gems need to be installed on every node (Server and Clients) that need it. There are plans on improving this flow.
 
 ## Further Reading
 

@@ -9,7 +9,7 @@ sub_nav: 0
 
 # Getting Started with Pantry
 
-Pantry is written in [Ruby](https://www.ruby-lang.org/) and distributed via [Rubygems](http://rubygems.org/gems/pantry). Install the core library on every server with:
+Pantry is written in [Ruby](https://www.ruby-lang.org/) and distributed via [Rubygems](http://rubygems.org/gems/pantry). Install the core library on every server you want to manage with Pantry:
 
 ```
 gem install pantry
@@ -17,7 +17,7 @@ gem install pantry
 
 ## Plugins
 
-Adding functionality to Pantry is done via Plugins. Plugins should also be distributed as a Gem, e.g. to install Pantry Chef run:
+Adding functionality to Pantry is done via Plugins. Plugins should also be distributed as a Gem, e.g. to install [Pantry Chef](/chef) run:
 
 ```
 gem install pantry-chef
@@ -35,7 +35,7 @@ Pantry provides configuration files and run scripts in the main repository's [di
 
 ## Your First Commands
 
-Once a Pantry Server is running, test that it's running properly with a `status` command from the CLI:
+Once a Pantry Server is running, test that it is running properly with the `status` command from the CLI:
 
 ```
 pantry --host [server host name] status

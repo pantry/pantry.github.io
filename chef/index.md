@@ -43,7 +43,7 @@ All uploaded cookbooks are stored in `Pantry.root/chef/cookbooks`. Directories a
 
 ### Environments, Roles, Data Bags
 
-These files are all stored in their respective Application directory in `Pantry.root/application/{application}/chef/{type}`. These files are uploaded, stored, and sent to Clients without any processing. Pantry Chef doesn't care if the files are written with the Ruby DSL or as JSON.
+These files are all stored in their respective Application directory in `Pantry.root/application/[application]/chef/[type]`. These files are uploaded, stored, and sent to Clients without any processing. Pantry Chef doesn't care if the files are written with the Ruby DSL or as JSON.
 
 ### Nodes
 

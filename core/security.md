@@ -47,7 +47,7 @@ When creating a new Client keypair meant for a CLI client, `pantry` supports the
 
 #### Getting Started
 
-There is a problem though. With such strict authentication and requiring a Curve connection to the Server to create new Client keys, how do we set up our the first Client? To help with initial setup, when the Server doesn't know about any Clients it relaxes its authentication requirements. The first Client to connect into the Server knowing the Server's public key will be allowed in and marked as a known Client.
+There is a problem though. With such strict authentication and requiring a Curve connection to the Server to create new Client keys, how do we set up our the first Client? To help with initial setup, when the Server doesn't know about any Clients it relaxes its authentication requirements. The first Client to connect into the Server with the Server's public key will be allowed in and marked as a known Client.
 
 To make finding the new Server's public key easy, the Server logs its public key on startup. In most cases, a CLI Client will be the first to connect to a new Server. Once you have the Server's public key, set up a local file named `.pantry/keys.yml` with the content:
 
@@ -56,7 +56,7 @@ To make finding the new Server's public key easy, the Server logs its public key
 server_public_key: the-servers-public-key
 {% endhighlight %}
 
-and run the with the option `--curve-key-file keys.yml`. This should connect and running a simple `status` or `echo` request should be sufficient to fill out the rest of the Client's keys, allowing any future requests from this CLI.
+and run `pantry` the with the option `--curve-key-file keys.yml`. This should connect and running a simple `status` or `echo` request should be sufficient to fill out the rest of the Client's keys, allowing any future requests from this CLI.
 
 #### Debugging Issues with Curve
 

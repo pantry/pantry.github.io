@@ -29,7 +29,7 @@ Commands have access to the parsed options as well as any global options via the
 
 ## Default Options
 
-To reduce redundant typing, the CLI supports setting default options using a local `.pantry/config` file. This file, if it exists, should contain CLI options, one options per line. These options will be applied first, allowing overriding as necessary. An example might look like:
+To reduce redundant typing, the CLI supports setting default options using a local `.pantry/config` file. This file, if it exists, should contain CLI options, one option per line. These options will be applied first, allowing overriding as necessary. An example might look like:
 
 ```
 --application pantry

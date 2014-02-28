@@ -9,7 +9,7 @@ sub_nav: 1
 
 # Configuring Pantry
 
-Pantry works to follow convention over configuration, but understands that no server infrastructure is the same and as such supports custom configuration. Configuration files are YAML formatted and normally live in `/etc/pantry`. To use these config files, specify the `--config` option when starting `pantry-client` and `pantry-server`.
+Pantry is designed for convention over configuration, but understands that no server infrastructure is the same and as such supports custom configuration. Configuration files are YAML formatted and normally live in `/etc/pantry`. To use these config files, specify the `--config` option when starting `pantry-client` and `pantry-server`.
 
 ## Default Configs
 
