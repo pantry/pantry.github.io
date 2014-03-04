@@ -308,6 +308,84 @@ You'll notice a new invocation here, `Pantry.root`. We'll touch on that in just 
 
 Pantry does not use a database. All persistent data is written out to the file system. Where Pantry writes these files is dictated by the [configuration](/core/configure.html) and is available in the code via `Pantry.root`. In order to stay self-contained and a good citizen of servers, no files should be written outside of the `Pantry.root`. Furthermore, plugins should carve out their own location for their files to prevent accidental file clobbering. For example, [Pantry Chef](/chef) writes all global Chef data under `Pantry.root/chef` and all Application specific data under `Pantry.root/application/[app_name]/chef`.
 
+### Testing
+
+Pantry Core has two test suites, a set of unit tests and a set of acceptance / integration tests. From these test suites a few helpers emerged that facilitate testing Pantry commands on their own and in a full Pantry network stack. When writing new Commands, it's recommended to build an acceptance test first to shows the Command working through the stack, then add unit tests for specific functionality of the Command, such as error handling.
+
+Pantry's tests use [minitest](https://github.com/seattlerb/minitest), but most of the helpers are simple and should be easy to include in other test frameworks.
+
+Load the helpers into your test helper of choice with a `require`:
+
+{% highlight ruby %}
+# Unit tests
+require 'pantry/test/unit'
+
+# Acceptance tests
+require 'pantry/test/acceptance'
+{% endhighlight %}
+
+Both suites of tests have access to the following.
+
+##### FakeFS
+
+Enable [FakeFS](https://github.com/defunkt/fakefs) for the tests in question
+
+{% highlight ruby %}
+describe MyCustomCommand do
+  fake_fs!
+
+  it "writes something to the file system" do
+    ...
+  end
+end
+{% endhighlight %}
+
+##### Mock UI
+
+Mock out the `Pantry.ui` calls to test console usage and output. This helper provides the `stdin` and `stdout` methods for manipulating the streams, allowing you to mock out input and output.
+
+{% highlight ruby %}
+describe MyCustomCommand do
+  mock_ui!
+
+  it "writes something to console" do
+    stdin << "y"
+    ...
+
+    assert_equal "Thingy Done\n", stdout
+  end
+end
+{% endhighlight %}
+
+#### Acceptance Tests
+
+In order to properly test a Command through the full stack of a Pantry network, you will often need a Server and a Client communicating and a CLI instance to execute the command. Pantry acceptance tests get access to a method for facilitating this: `set_up_environment`. This method sets up a full stack of a Pantry Server and two Clients who connect to the Server. This uses real sockets and as such every acceptance test needs to have it's own unique `ports_start_at` parameter (and give a window between tests, Pantry currently needs 3 ports) for `set_up_environment`, otherwise the tests will probably die with "Address in use" errors.
+
+An example acceptance test that tests the `echo` command:
+
+{% highlight ruby %}
+describe "CLI requests information from individual clients" do
+  mock_ui!
+
+  it "receives responses from each client asked" do
+    # Set up @server, @client1, and @client2
+    set_up_environment(ports_start_at: 10100)
+
+    Pantry::CLI.new(
+      # Command line is tokenized by whitespace,
+      # which we emulate with an array
+      ["-a", "pantry", "echo", "Hi"],
+      # Specific identity set to ensure the response
+      # only contains @client1 and @client2
+      identity: "cli1"
+    ).run
+
+    assert_match %r|#{@client1.identity} echo's "Hi"|, stdout
+    assert_match %r|#{@client2.identity} echo's "Hi"|, stdout
+  end
+end
+{% endhighlight %}
+
 ### Integrating Your Plugin
 
 Last, but not least, any new Commands need to be loaded with Pantry Core. This is done via Rubygems. Package up your plugin as a gem and make sure it includes a file named `pantry/init.rb`. Pantry, on boot, will look for all gems that include this file and will `require` each of them. If there's a problem loading a specific plugin, the error will be logged. For now the plugin gems need to be installed on every node (Server and Clients) that need it. There are plans on improving this flow.
