@@ -18,7 +18,8 @@ All Commands must adhere to the following rules:
 * A Command must be a `Pantry::Command`
 * A Command must implement `#perform(message)`
 * A Command may implement `#prepare_message(options)`
-* A Command may implement `#receive_response(response)`
+* A Command may implement `#receive_server_response(response)`
+* A Command may implement `#receive_client_response(response)`
 * A Command may define a `command` block for [CLI](/core/cli.html) support
 * The Command must be registered with Pantry as a Client or Server command
 
@@ -34,7 +35,7 @@ class MyCommand < Pantry::Command
 
   def perform(message); ...; end
 
-  def receive_response(response); ...; end
+  def receive_server_response(response); ...; end
 end
 {% endhighlight %}
 
@@ -82,9 +83,8 @@ class TheSimplestEcho < Pantry::Command
     message.body[0]
   end
 
-  def receive_response(response)
+  def receive_server_response(response)
     Pantry.ui.say(message.body[0])
-    super
   end
 end
 {% endhighlight %}
@@ -95,7 +95,7 @@ One important oddity to note about `Command#initialize`. Commands are also insta
 
 There's a new method here too, `#to_message`. All Commands are responsible for creating the Message that will trigger the Command on the receiving side. Messages are linked to a Command via `Message#type`, which by default is the class name of the Command. In order to prevent Command name collisions, this value can be overridden via the `Command.message_type` class method.
 
-Lastly the Command now also defines `#receive_response`. By default a Command will assume that it is finished as soon as a single response comes back. To act on that response, override this method. `#receive_response` is called for each and every Message response as long as the process runs (normally, as a CLI receiving responses from the Server). This method must either call `super` or `Command#finished` to mark the Command as complete, otherwise the CLI will hang, waiting for more responses that will probably never come.
+Lastly the Command now also defines `#receive_server_response`. By default a Command will assume that it is finished as soon as a single response comes back. To act on that response for Server commands, override this method.
 
 #### Adding CLI Options
 
@@ -141,9 +141,8 @@ class TheSimplestEcho < Pantry::Command
     to_echo * repeat_count
   end
 
-  def receive_response(response)
+  def receive_server_response(response)
     Pantry.ui.say(message.body[0])
-    super
   end
 end
 {% endhighlight %}
@@ -166,26 +165,14 @@ end
 
 ### Writing a Client Command
 
-Converting a Server Command to a Client Command requires one important change to `#receive_response`. Due to the asynchronous nature of Pantry, the CLI cannot know ahead of time how many Clients will receive a given Message. The Server, through which all Messages pass, will know, and first responds with a Message containing all relevant Client identities before forwarding on the Message to these Clients. The Command will need to handle this first response as well as wait for the responses from each of the mentioned Clients before finishing. The pattern looks like this:
+Converting a Server Command to a Client Command requires a single change. The Command should implement `#receive_client_response` instead of `#receive_server_response` as the responses will now come from Pantry Clients.
 
 {% highlight ruby %}
 class TheSimplestEcho < Pantry::Command
   # Other code is the same as previous examples ...
 
-  def receive_response(response)
-    @received ||= []
-    @expected_clients ||= []
-
-    if message.from_server?
-      @expected_clients = message.body
-    else
-      @received << message
-    end
-
-    if !@expected_clients.empty? &&
-        @received.length >= @expected_clients.length
-      super
-    end
+  def receive_client_response(response)
+    Pantry.ui.say("Client #{response.from} echo's #{response.body}")
   end
 end
 
@@ -207,10 +194,6 @@ class DoStuff < Pantry::MultiCommand
     InstallStuff,
     RunStuff
   ]
-
-  def receive_response(response)
-    # ... handle as needed
-  end
 end
 {% endhighlight %}
 
@@ -289,7 +272,7 @@ class UploadBigFile < Pantry::Command
     [upload_info.receiver_uuid, upload_info.file_uuid]
   end
 
-  def receive_response(response)
+  def receive_server_response(response)
     receiver_uuid = response.body[0]
     file_uuid = response.body[1]
 
@@ -297,12 +280,11 @@ class UploadBigFile < Pantry::Command
       @file_path, receiver_uuid, file_uuid
     )
     upload_info.wait_for_finish
-    super
   end
 end
 {% endhighlight %}
 
-You'll notice a new invocation here, `Pantry.root`. We'll touch on that in just a sec. Also always remember that during the CLI invocation of a Command, `#initialize`, `#to_message`, `#prepare_message`, and `#receive_response` are all called on the same object on the CLI/Client side, and `#perform` is executed on the Server side. Any data that `#perform` needs to know must be included in the Message.
+You'll notice a new invocation here, `Pantry.root`. We'll touch on that in just a sec. Also always remember that during the CLI invocation of a Command, `#initialize`, `#to_message`, `#prepare_message`, and `#receive_server_response` are all called on the same object on the CLI/Client side, and `#perform` is executed on the Server side. Any data that `#perform` needs to know must be included in the Message.
 
 ### Pantry.root and the File System
 
