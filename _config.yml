@@ -3,7 +3,7 @@
 ##
 port:         8080
 pygments:     true
-pagination:   10
+pagination:   5
 permalink:    /:year/:month/:day/:title/
 exclude:
   - Gemfile
